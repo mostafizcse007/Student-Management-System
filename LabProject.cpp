@@ -1172,8 +1172,6 @@ public:
             case 2:
                 student->modifyInfo();
                 break;
-                // Inside Control::userMenu()
-                // Inside Control::userMenu()
             case 3:
             {
                 string oldPass;
