@@ -963,6 +963,22 @@ class Control
              << RESET;
         cout << YELLOW << "Enter your choice: " << RESET;
     }
+    void showCredits()
+    {
+        clearScreen();
+        cout << CYAN << "================== Credits ==================\n"
+             << RESET;
+        cout << GREEN << "This program was created by:\n";
+        cout << "- [Mostafizur Rahman Antu]\n";
+        cout << "- [Farhan Sadik Kawsar]\n";
+        cout << "- [Shanita Shafi Mugdha]\n";
+        cout << "- [Md. Waliullah]\n";
+        cout << "- [Maruf Hossain]\n";
+        cout << "Thank you for using the Student Management System.\n";
+        cout << CYAN << "=============================================\n"
+             << RESET;
+        pauseScreen();
+    }
     void printAdminMenu()
     {
         cout << CYAN << "========================== Admin Menu ==========================\n"
@@ -1233,10 +1249,10 @@ public:
 
                 case 3:
                     cout << "Exiting system. Goodbye!" << endl;
+                    showCredits();
                     return;
-
                 default:
-                    cout << "Invalid choice." << endl;
+                    cout << RED << "Invalid choice." << RESET << endl;
                 }
             }
             catch (const exception &e)
