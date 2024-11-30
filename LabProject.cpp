@@ -153,16 +153,15 @@ public:
     }
     void viewPerformanceAnalysis() const
     {
-        cout << CYAN << "\n===================================\n";
-        cout << "       Performance Analysis       \n";
-        cout << "===================================\n"
+        cout << CYAN << "\n=============== Performance Analysis ===============\n"
              << RESET;
+
         double highestMark = *max_element(subMarks.begin(), subMarks.end());
         double lowestMark = *min_element(subMarks.begin(), subMarks.end());
-        double averageMark = accumulate(subMarks.begin(), subMarks.end(), 0.0) / subMarks.size();
+        double averageMark = totalAvg;
 
-        cout << "Highest Mark: " << highestMark << " in ";
-        for (int i = 0; i < subMarks.size(); ++i)
+        cout << setw(20) << left << "Highest Mark:" << highestMark << " in ";
+        for (size_t i = 0; i < subMarks.size(); ++i)
         {
             if (subMarks[i] == highestMark)
             {
@@ -171,8 +170,8 @@ public:
         }
         cout << endl;
 
-        cout << "Lowest Mark: " << lowestMark << " in ";
-        for (int i = 0; i < subMarks.size(); ++i)
+        cout << setw(20) << left << "Lowest Mark:" << lowestMark << " in ";
+        for (size_t i = 0; i < subMarks.size(); ++i)
         {
             if (subMarks[i] == lowestMark)
             {
@@ -181,9 +180,12 @@ public:
         }
         cout << endl;
 
-        cout << "Average Mark: " << averageMark << endl;
+        cout << setw(20) << left << "Average Mark:" << averageMark << endl;
 
-        cout << "Grade Distribution:" << endl;
+        cout << BLUE << "\nGrade Distribution:\n"
+             << RESET;
+        cout << left << setw(10) << "Grade" << setw(10) << "Count" << endl;
+        cout << "--------------------------" << endl;
         int gradeCounts[10] = {0};
         for (double mark : subMarks)
         {
@@ -196,55 +198,56 @@ public:
             else if (mark >= 65)
                 gradeCounts[3]++;
             else if (mark >= 60)
-                gradeCounts[3]++;
-            else if (mark >= 55)
-                gradeCounts[3]++;
-            else if (mark >= 50)
-                gradeCounts[3]++;
-            else if (mark >= 45)
-                gradeCounts[3]++;
-            else if (mark >= 40)
-                gradeCounts[3]++;
-            else
                 gradeCounts[4]++;
+            else if (mark >= 55)
+                gradeCounts[5]++;
+            else if (mark >= 50)
+                gradeCounts[6]++;
+            else if (mark >= 45)
+                gradeCounts[7]++;
+            else if (mark >= 40)
+                gradeCounts[8]++;
+            else
+                gradeCounts[9]++;
         }
-        cout << "A+: " << gradeCounts[0] << endl;
-        cout << "A : " << gradeCounts[1] << endl;
-        cout << "A-: " << gradeCounts[2] << endl;
-        cout << "B+: " << gradeCounts[3] << endl;
-        cout << "B: " << gradeCounts[4] << endl;
-        cout << "B-: " << gradeCounts[5] << endl;
-        cout << "C+: " << gradeCounts[6] << endl;
-        cout << "C : " << gradeCounts[7] << endl;
-        cout << "D : " << gradeCounts[8] << endl;
-        cout << "F : " << gradeCounts[9] << endl;
+        const char *grades[] = {"A+", "A", "A-", "B+", "B", "B-", "C+", "C", "D", "F"};
+        for (int i = 0; i < 10; ++i)
+        {
+            cout << left << setw(10) << grades[i] << setw(10) << gradeCounts[i] << endl;
+        }
 
-        cout << CYAN << "===================================\n\n"
+        cout << CYAN << "====================================================\n\n"
              << RESET;
     }
 
     void PrintStudent() const
     {
-        cout << CYAN << "\n===================================\n";
-        cout << "          Student Details          \n";
-        cout << "===================================\n"
+        cout << CYAN << "\n================= Student Details =================\n"
              << RESET;
-        cout << setw(25) << left << "Student ID:" << stID << "\n";
-        cout << setw(25) << left << "Student Name:" << stName << "\n";
-        cout << setw(25) << left << "Blood Group:" << stBlood << "\n";
-        cout << setw(25) << left << "Email Address:" << stEmail << "\n";
-        cout << setw(25) << left << "Gender:" << stGender << "\n";
-        cout << setw(25) << left << "House Address:" << stAddress << "\n";
-        cout << setw(25) << left << "Number of Courses:" << subNo << "\n";
-        cout << BLUE << "Subjects and Marks:\n"
+
+        cout << setw(20) << left << "Student ID:" << stID << "    ";
+        cout << setw(20) << left << "Name:" << stName << endl;
+
+        cout << setw(20) << left << "Blood Group:" << stBlood << "    ";
+        cout << setw(20) << left << "Email:" << stEmail << endl;
+
+        cout << setw(20) << left << "Gender:" << stGender << "    ";
+        cout << setw(20) << left << "Address:" << stAddress << endl;
+
+        cout << setw(20) << left << "Courses:" << subNo << "    ";
+        cout << setw(20) << left << "Total Average:" << totalAvg << endl;
+
+        cout << setw(20) << left << "Grade:" << stGrade << endl;
+
+        cout << BLUE << "\nSubjects and Marks:\n"
              << RESET;
-        for (int i = 0; i < subNames.size(); ++i)
+        cout << left << setw(25) << "Subject" << setw(10) << "Marks" << endl;
+        cout << "----------------------------------------" << endl;
+        for (size_t i = 0; i < subNames.size(); ++i)
         {
-            cout << "- " << subNames[i] << ": " << subMarks[i] << endl;
+            cout << setw(25) << subNames[i] << setw(10) << subMarks[i] << endl;
         }
-        cout << setw(25) << left << "Total Average:" << totalAvg << "\n";
-        cout << setw(25) << left << "Grade:" << stGrade << "\n";
-        cout << CYAN << "===================================\n\n"
+        cout << CYAN << "====================================================\n\n"
              << RESET;
     }
 
@@ -627,6 +630,8 @@ public:
             }
             temp->stPassHash = newPassHash;
             cout << "Password changed successfully." << endl;
+            saveToCSV();
+            cout << GREEN << "Changes saved successfully." << RESET << endl;
         }
         else
         {
@@ -875,47 +880,34 @@ class Control
     }
     void printMainMenu()
     {
-        cout << CYAN << "===================================\n";
-        cout << "         Student Management        \n";
-        cout << "===================================\n"
+        cout << CYAN << "================ Student Management System ================\n"
              << RESET;
-        cout << BLUE << "1. Admin Login\n";
-        cout << "2. Student Login\n";
-        cout << "3. Exit\n"
+        cout << BLUE
+             << "1. Admin Login            "
+             << "2. Student Login           "
+             << "3. Exit\n"
              << RESET;
         cout << YELLOW << "Enter your choice: " << RESET;
     }
     void printAdminMenu()
     {
-        cout << CYAN << "===================================\n";
-        cout << "            Admin Menu             \n";
-        cout << "===================================\n"
+        cout << CYAN << "========================== Admin Menu ==========================\n"
              << RESET;
-        cout << BLUE << "1. Add Account\n";
-        cout << "2. Remove Account\n";
-        cout << "3. Show All Student Accounts\n";
-        cout << "4. Modify Account\n";
-        cout << "5. Search Account by Different Criteria\n";
-        cout << "6. Save Student Data\n";
-        cout << "7. Restore Deleted Students\n";
-        cout << "8. Sort Students by Their Grade\n";
-        cout << "9. Total Active and Inactive Students\n";
-        cout << "10. Show All Deleted Accounts\n";
-        cout << "11. Log Out\n"
+        cout << BLUE
+             << "1. Add Account             2. Remove Account         3. Show All Accounts\n"
+             << "4. Modify Account          5. Search Accounts        6. Save Data\n"
+             << "7. Restore Students        8. Sort Students          9. Student Statistics\n"
+             << "10. Show Deleted Accounts  11. Log Out\n"
              << RESET;
         cout << YELLOW << "Enter your choice: " << RESET;
     }
     void printUserMenu()
     {
-        cout << CYAN << "===================================\n";
-        cout << "             User Menu             \n";
-        cout << "===================================\n"
+        cout << CYAN << "========================== User Menu ===========================\n"
              << RESET;
-        cout << BLUE << "1. View Details\n";
-        cout << "2. Update Information\n";
-        cout << "3. Change Password\n";
-        cout << "4. View Performance Analysis\n";
-        cout << "5. Log Out\n"
+        cout << BLUE
+             << "1. View Details            2. Update Information      3. Change Password\n"
+             << "4. View Performance        5. Log Out\n"
              << RESET;
         cout << YELLOW << "Enter your choice: " << RESET;
     }
@@ -1090,13 +1082,18 @@ public:
             case 2:
                 student->modifyInfo();
                 break;
+                // Inside Control::userMenu()
+                // Inside Control::userMenu()
             case 3:
+            {
+                string oldPass;
                 cout << "Enter your old password: ";
-                getline(cin, student->stPassHash);
+                getline(cin, oldPass);
                 cout << "Enter a new password: ";
                 getline(cin, newPass);
-                user.changePassword(student->stID, student->stPassHash, newPass);
-                break;
+                user.changePassword(student->stID, oldPass, newPass);
+            }
+            break;
             case 4:
                 student->viewPerformanceAnalysis();
                 break;
