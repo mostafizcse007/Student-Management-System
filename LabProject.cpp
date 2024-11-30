@@ -160,7 +160,7 @@ public:
         double lowestMark = *min_element(subMarks.begin(), subMarks.end());
         double averageMark = totalAvg;
 
-        cout << setw(20) << left << "Highest Mark:" << highestMark << " in ";
+        cout << setw(20) << left << "Highest Mark:" << setw(10) << left << highestMark << " in ";
         for (size_t i = 0; i < subMarks.size(); ++i)
         {
             if (subMarks[i] == highestMark)
@@ -225,19 +225,19 @@ public:
         cout << CYAN << "\n================= Student Details =================\n"
              << RESET;
 
-        cout << setw(20) << left << "Student ID:" << stID << "    ";
-        cout << setw(20) << left << "Name:" << stName << endl;
+        cout << setw(20) << left << "Student ID:" << setw(30) << left << stID;
+        cout << setw(20) << left << "Name:" << setw(30) << left << stName << endl;
 
-        cout << setw(20) << left << "Blood Group:" << stBlood << "    ";
-        cout << setw(20) << left << "Email:" << stEmail << endl;
+        cout << setw(20) << left << "Blood Group:" << setw(30) << left << stBlood;
+        cout << setw(20) << left << "Email:" << setw(30) << left << stEmail << endl;
 
-        cout << setw(20) << left << "Gender:" << stGender << "    ";
-        cout << setw(20) << left << "Address:" << stAddress << endl;
+        cout << setw(20) << left << "Gender:" << setw(30) << left << stGender;
+        cout << setw(20) << left << "Address:" << setw(30) << left << stAddress << endl;
 
-        cout << setw(20) << left << "Courses:" << subNo << "    ";
-        cout << setw(20) << left << "Total Average:" << totalAvg << endl;
+        cout << setw(20) << left << "Courses:" << setw(30) << left << subNo;
+        cout << setw(20) << left << "Total Average:" << setw(30) << left << totalAvg << endl;
 
-        cout << setw(20) << left << "Grade:" << stGrade << endl;
+        cout << setw(20) << left << "Grade:" << setw(30) << left << stGrade << endl;
 
         cout << BLUE << "\nSubjects and Marks:\n"
              << RESET;
@@ -254,10 +254,11 @@ public:
     string toCSV() const
     {
         ostringstream ss;
+        // Enclose fields that may contain commas in double quotes
         ss << stID << "," << stName << "," << stPassHash << "," << stBlood << ","
-           << stEmail << "," << stGender << "," << stAddress << "," << subNo << ","
+           << stEmail << "," << stGender << ",\"" << stAddress << "\"," << subNo << ","
            << totalAvg << "," << stGrade;
-        for (int i = 0; i < subNo; ++i)
+        for (int i = 0; i < subNames.size(); ++i)
         {
             ss << "," << subNames[i] << ":" << subMarks[i];
         }
@@ -267,26 +268,86 @@ public:
     static Student fromCSV(const string &line)
     {
         istringstream ss(line);
-        string id, name, passHash, blood, email, gender, address, grade;
+        string id, name, passHash, blood, email, gender, address, number_str, avg_str, grade;
+
+        auto getNextField = [&](std::string &field)
+        {
+            if (ss.peek() == '"')
+            {
+                ss.get();                // Skip the opening quote
+                getline(ss, field, '"'); // Read until the closing quote
+                ss.get();                // Skip the comma after the closing quote
+                if (ss.peek() == ',')
+                    ss.get(); // Skip the comma if present
+            }
+            else
+            {
+                getline(ss, field, ',');
+            }
+        };
+        // Read all fields as strings first
+        getNextField(id);
+        getNextField(name);
+        getNextField(passHash);
+        getNextField(blood);
+        getNextField(email);
+        getNextField(gender);
+        getNextField(address);
+        getNextField(number_str);
+        getNextField(avg_str);
+        getNextField(grade);
+
+        // Trim whitespace from numeric strings
+        number_str.erase(number_str.find_last_not_of(" \n\r\t") + 1);
+        avg_str.erase(avg_str.find_last_not_of(" \n\r\t") + 1);
+
+        // Convert numeric strings to actual numeric types
+        number_str.erase(number_str.find_last_not_of(" \n\r\t") + 1);
+        avg_str.erase(avg_str.find_last_not_of(" \n\r\t") + 1);
+
+        // Check if number_str and avg_str are not empty
+        if (number_str.empty())
+        {
+            cerr << "Error: 'number_str' is empty." << endl;
+            throw invalid_argument("Invalid number_str in fromCSV.");
+        }
+
+        if (avg_str.empty())
+        {
+            cerr << "Error: 'avg_str' is empty." << endl;
+            throw invalid_argument("Invalid avg_str in fromCSV.");
+        }
+
+        // Convert numeric strings to actual numeric types
         int number;
         double avg;
 
-        getline(ss, id, ',');
-        getline(ss, name, ',');
-        getline(ss, passHash, ',');
-        getline(ss, blood, ',');
-        getline(ss, email, ',');
-        getline(ss, gender, ',');
-        getline(ss, address, ',');
-        ss >> number;
-        ss.ignore();
-        ss >> avg;
-        ss.ignore();
-        getline(ss, grade, ',');
+        try
+        {
+            number = stoi(number_str);
+        }
+        catch (const invalid_argument &e)
+        {
+            cerr << "Error: Invalid number_str: '" << number_str << "'." << endl;
+            throw;
+        }
+
+        try
+        {
+            avg = stod(avg_str);
+        }
+        catch (const invalid_argument &e)
+        {
+            cerr << "Error: Invalid avg_str: '" << avg_str << "'." << endl;
+            throw;
+        }
+
+        // Initialize the student object
         Student student(id, name, passHash, blood, email, gender, address, number, false);
         student.totalAvg = avg;
         student.stGrade = grade;
 
+        // Now read the rest of the line as subject:mark pairs
         string subNameMark;
         while (getline(ss, subNameMark, ','))
         {
@@ -299,6 +360,7 @@ public:
                 student.subMarks.push_back(mark);
             }
         }
+
         return student;
     }
     void saveToCSV() const
@@ -687,16 +749,28 @@ public:
         string line;
         while (getline(file, line))
         {
-            Student student = Student::fromCSV(line);
-            Student *newStudent = new Student(student.stID, student.stName, student.stPassHash,
-                                              student.stBlood, student.stEmail, student.stGender,
-                                              student.stAddress, student.subNo, false);
-            newStudent->subNames = student.subNames;
-            newStudent->subMarks = student.subMarks;
-            newStudent->totalAvg = student.totalAvg;
-            newStudent->stGrade = student.stGrade;
-            newStudent->next = head;
-            head = newStudent;
+            if (line.empty())
+                continue;
+
+            try
+            {
+                Student student = Student::fromCSV(line);
+                Student *newStudent = new Student(student.stID, student.stName, student.stPassHash,
+                                                  student.stBlood, student.stEmail, student.stGender,
+                                                  student.stAddress, student.subNo, false);
+                newStudent->subNames = student.subNames;
+                newStudent->subMarks = student.subMarks;
+                newStudent->totalAvg = student.totalAvg;
+                newStudent->stGrade = student.stGrade;
+                newStudent->next = head;
+                head = newStudent;
+            }
+            catch (const std::exception &e)
+            {
+                cerr << "Error parsing line: " << e.what() << endl;
+                cerr << "Line content: " << line << endl;
+                // Optionally continue or abort loading
+            }
         }
         file.close();
     }
