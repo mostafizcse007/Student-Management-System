@@ -65,6 +65,6 @@ Runtime-generated files (not tracked by git):
 
 - Mostafizur Rahman Antu
 - Shanita Shafi Mugdha
-- Shanita Shafi Mugdha
+- Farhan Sadik Kawsar
 - Md. Waliullah
 - Maruf Hossain
