@@ -1,4 +1,12 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <iomanip>
+#include <limits>
+#include <stdexcept>
 #define RESET "\033[0m"
 #define RED "\033[31m"
 #define GREEN "\033[32m"
@@ -9,6 +17,7 @@ using namespace std;
 class Student
 {
 public:
+    // TODO: Make private with getters/setters in a production system
     string stID, stName, stBlood, stEmail, stGender, stAddress, stGrade;
     string stPassHash;
     int subNo;
@@ -301,10 +310,6 @@ public:
         number_str.erase(number_str.find_last_not_of(" \n\r\t") + 1);
         avg_str.erase(avg_str.find_last_not_of(" \n\r\t") + 1);
 
-        // Convert numeric strings to actual numeric types
-        number_str.erase(number_str.find_last_not_of(" \n\r\t") + 1);
-        avg_str.erase(avg_str.find_last_not_of(" \n\r\t") + 1);
-
         // Check if number_str and avg_str are not empty
         if (number_str.empty())
         {
@@ -392,7 +397,13 @@ public:
             cout << "7. Modify Subjects and Marks\n";
             cout << "8. Exit Modification Menu\n";
             cout << YELLOW << "Enter your choice: " << RESET;
-            cin >> choice;
+            if (!(cin >> choice))
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << RED << "Invalid input. Please enter a number." << RESET << endl;
+                continue;
+            }
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
             switch (choice)
@@ -442,8 +453,6 @@ public:
             default:
                 cout << RED << "Invalid choice. Please try again." << RESET << endl;
             }
-            saveToCSV();
-            cout << GREEN << "Changes saved successfully." << RESET << endl;
         }
     }
 };
@@ -480,17 +489,6 @@ public:
         while (temp)
         {
             if (temp->stEmail == email)
-                return temp;
-            temp = temp->next;
-        }
-        return nullptr;
-    }
-    Student *findPass(const string &pass) const
-    {
-        Student *temp = head;
-        while (temp)
-        {
-            if (temp->stPassHash == pass)
                 return temp;
             temp = temp->next;
         }
@@ -597,6 +595,7 @@ public:
             return;
         }
         temp->modifyInfo();
+        saveToCSV();
         cout << GREEN << "Student information modified successfully." << RESET << endl;
     }
 
@@ -941,6 +940,7 @@ public:
 class Control
 {
     Management user;
+    // SECURITY NOTE: Change these credentials before deploying in production.
     string adminUsername = "admin";
     string adminPassHash = "admin123";
     void clearScreen()
@@ -987,7 +987,7 @@ class Control
              << "1. Add Account             2. Remove Account         3. Show All Accounts\n"
              << "4. Modify Account          5. Search Accounts        6. Save Data\n"
              << "7. Restore Students        8. Sort Students          9. Student Statistics\n"
-             << "10. Show Deleted Accounts  11. Log Out\n"
+             << "10. Show Deleted Accounts  11. Change Admin Password  12. Log Out\n"
              << RESET;
         cout << YELLOW << "Enter your choice: " << RESET;
     }
@@ -1017,7 +1017,14 @@ public:
             clearScreen();
             printAdminMenu();
             int choice;
-            cin >> choice;
+            if (!(cin >> choice))
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << RED << "Invalid input. Please enter a number." << RESET << endl;
+                pauseScreen();
+                continue;
+            }
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             switch (choice)
             {
@@ -1037,7 +1044,13 @@ public:
                 cout << "Enter student's address: ";
                 getline(cin, stAddress);
                 cout << "Number of subject to be enrolled: ";
-                cin >> subNo;
+                if (!(cin >> subNo))
+                {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << RED << "Invalid input. Please enter a number." << RESET << endl;
+                    break;
+                }
                 user.addStudent(stID, stName, stPass, stBlood, stEmail, stGender, stAddress, subNo);
                 break;
             case 2:
@@ -1074,7 +1087,13 @@ public:
                 int searchChoice;
                 cout << "Search by: 1. ID 2. Name 3. Email 4. Average Range 5.Gender" << endl;
                 cout << "Enter your choice: ";
-                cin >> searchChoice;
+                if (!(cin >> searchChoice))
+                {
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                    cout << RED << "Invalid input. Please enter a number." << RESET << endl;
+                    break;
+                }
                 cin.ignore(numeric_limits<streamsize>::max(), '\n');
                 switch (searchChoice)
                 {
@@ -1096,13 +1115,26 @@ public:
                 case 4:
                     double low, high;
                     cout << "Enter low range: ";
-                    cin >> low;
+                    if (!(cin >> low))
+                    {
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << RED << "Invalid input. Please enter a number." << RESET << endl;
+                        break;
+                    }
                     cout << "Enter high range: ";
-                    cin >> high;
+                    if (!(cin >> high))
+                    {
+                        cin.clear();
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cout << RED << "Invalid input. Please enter a number." << RESET << endl;
+                        break;
+                    }
                     user.searchByRange(low, high);
                     break;
                 case 5:
                     cout << "Enter gender: ";
+                    getline(cin, stGender);
                     user.searchByGender(stGender);
                     break;
                 default:
@@ -1137,6 +1169,25 @@ public:
                 user.showAllDeletedStudents();
                 break;
             case 11:
+            {
+                string newAdminUser, newAdminPass;
+                cout << "Enter new admin username: ";
+                getline(cin, newAdminUser);
+                cout << "Enter new admin password: ";
+                getline(cin, newAdminPass);
+                if (newAdminUser.empty() || newAdminPass.empty())
+                {
+                    cout << RED << "Username and password cannot be empty." << RESET << endl;
+                }
+                else
+                {
+                    adminUsername = newAdminUser;
+                    adminPassHash = newAdminPass;
+                    cout << GREEN << "Admin credentials updated successfully." << RESET << endl;
+                }
+                break;
+            }
+            case 12:
                 cout << "Logging out..." << endl;
                 return;
             default:
@@ -1162,7 +1213,14 @@ public:
             clearScreen();
             printUserMenu();
             int choice;
-            cin >> choice;
+            if (!(cin >> choice))
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << RED << "Invalid input. Please enter a number." << RESET << endl;
+                pauseScreen();
+                continue;
+            }
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             switch (choice)
             {
@@ -1204,7 +1262,14 @@ public:
             clearScreen();
             printMainMenu();
             int choice;
-            cin >> choice;
+            if (!(cin >> choice))
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << RED << "Invalid input. Please enter a number." << RESET << endl;
+                pauseScreen();
+                continue;
+            }
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
             try
