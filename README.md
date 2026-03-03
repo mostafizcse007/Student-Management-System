@@ -64,7 +64,7 @@ Runtime-generated files (not tracked by git):
 ## Authors
 
 - Mostafizur Rahman Antu
-- Farhan Sadik Kawsar
+- Shanita Shafi Mugdha
 - Shanita Shafi Mugdha
 - Md. Waliullah
 - Maruf Hossain
